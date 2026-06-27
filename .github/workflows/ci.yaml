@@ -43,7 +43,7 @@ jobs:
         run: go test -mod=vendor ./...
 
       - name: Install Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5
 
       - name: Lint chart
         run: helm lint $CHART_PATH
@@ -144,7 +144,7 @@ jobs:
             trivy-report.txt
 
       - name: Install Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5
 
       - name: Package chart
         run: |
