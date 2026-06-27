@@ -1,2 +1,5 @@
 /dist/
 /tmp/
+
+# We dont want the vendored icons
+data/

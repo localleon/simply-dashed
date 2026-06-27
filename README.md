@@ -43,6 +43,13 @@ Runtime can then stay offline:
 go run -mod=vendor ./main.go -config config.yaml -icon-dir data/icons -refresh-icons=false
 ```
 
+## Release flow
+
+- Open and merge PRs normally.
+- Create and push a Git tag like `v1.2.3`.
+- That tag alone triggers the release workflow.
+- CI then builds and signs the container image, generates SBOM and vulnerability reports, packages the Helm chart with matching version metadata, pushes the OCI chart, and creates the GitHub release.
+
 ## Helm chart defaults
 
 Chart defaults target stricter clusters:

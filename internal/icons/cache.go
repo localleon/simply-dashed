@@ -40,6 +40,12 @@ func NewCache(dir string) (*Cache, error) {
 	}, nil
 }
 
+func (c *Cache) SetHTTPClient(client *http.Client) {
+	if client != nil {
+		c.client = client
+	}
+}
+
 func (c *Cache) Prime(ctx context.Context, cfg *config.Config, refresh bool) error {
 	var errs []string
 	for _, group := range cfg.Groups {
