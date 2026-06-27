@@ -81,7 +81,7 @@ func TestHandleIndexRendersFooterAndAssets(t *testing.T) {
 	body := rec.Body.String()
 	for _, want := range []string{
 		"/static/vendor/htmx-2.0.10.min.js",
-		`hx-trigger="keyup changed delay:120ms, search"`,
+		`hx-trigger="input changed delay:90ms, search"`,
 		`<footer class="footer">Links <span>·</span> v1.2.3</footer>`,
 		`/icons/`,
 	} {
