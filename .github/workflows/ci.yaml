@@ -123,6 +123,8 @@ jobs:
           image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
           output-file: simply-dashed-sbom.spdx.json
           format: spdx-json
+          upload-artifact: false
+          upload-release-assets: false
 
       - name: Attest SBOM with cosign
         run: |

@@ -11,7 +11,7 @@ RUN go env -w CGO_ENABLED=0
 COPY . .
 RUN go build -mod=vendor -trimpath -ldflags="-s -w -X main.version=${VERSION}" -o /out/simply-dashed ./main.go
 
-FROM gcr.io/distroless/static-debian12:nonroot
+FROM gcr.io/distroless/static-debian13:nonroot
 
 WORKDIR /app
 
