@@ -56,11 +56,9 @@ jobs:
     runs-on: ubuntu-latest
     needs: test
     permissions:
-      actions: read
       contents: write
       packages: write
       id-token: write
-      security-events: write
     outputs:
       digest: ${{ steps.build.outputs.digest }}
       image: ${{ steps.meta.outputs.tags }}
@@ -138,8 +136,8 @@ jobs:
         uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
-          format: sarif
-          output: trivy-results.sarif
+          format: json
+          output: trivy-results.json
           severity: CRITICAL,HIGH
           vuln-type: os,library
 
@@ -152,17 +150,12 @@ jobs:
           severity: CRITICAL,HIGH
           vuln-type: os,library
 
-      - name: Upload SARIF
-        uses: github/codeql-action/upload-sarif@v4.36.2
-        with:
-          sarif_file: trivy-results.sarif
-
       - name: Upload vulnerability report
         uses: actions/upload-artifact@v7.0.1
         with:
           name: trivy-report
           path: |
-            trivy-results.sarif
+            trivy-results.json
             trivy-report.txt
             simply-dashed-sbom.spdx.json
 
