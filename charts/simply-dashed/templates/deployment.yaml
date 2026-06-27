@@ -20,13 +20,15 @@ spec:
     metadata:
       labels:
         {{- include "simply-dashed.selectorLabels" . | nindent 8 }}
-      {{- with .Values.podAnnotations }}
       annotations:
+        checksum/config: {{ include "simply-dashed.configChecksum" . }}
+      {{- with .Values.podAnnotations }}
         {{- toYaml . | nindent 8 }}
       {{- end }}
     spec:
       automountServiceAccountToken: {{ .Values.serviceAccount.automountServiceAccountToken }}
       serviceAccountName: {{ include "simply-dashed.serviceAccountName" . }}
+      terminationGracePeriodSeconds: 30
       securityContext:
         {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:

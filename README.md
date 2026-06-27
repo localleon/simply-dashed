@@ -10,6 +10,7 @@ Static dashboard app in Go with HTMX and YAML config.
 - Startup icon refresh with local cache fallback
 - Responsive single-page layout using Milligram plus custom styling
 - Docker, Helm, and GitHub Actions scaffolding for OCI delivery
+- Hardened Helm defaults for restricted pod security environments
 
 ## Run
 
@@ -42,10 +43,24 @@ Runtime can then stay offline:
 go run -mod=vendor ./main.go -config config.yaml -icon-dir data/icons -refresh-icons=false
 ```
 
+## Helm chart defaults
+
+Chart defaults target stricter clusters:
+
+- `replicaCount: 2`
+- non-root runtime with dropped Linux capabilities
+- `readOnlyRootFilesystem: true`
+- `seccompProfile: RuntimeDefault`
+- service account token automount disabled
+- readiness, liveness, and startup probes on `/healthz`
+- resource requests and limits set
+- PDB and topology spread enabled
+- values validated with `values.schema.json`
+
 ## Config
 
 ```yaml
-title: Simply Dashed
+title: Links
 subtitle: Static dashboard for team links
 listen_addr: ":8080"
 groups:

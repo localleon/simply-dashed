@@ -41,7 +41,7 @@ func Load(path string) (*Config, error) {
 	}
 
 	if cfg.Title == "" {
-		cfg.Title = "Simply Dashed"
+		cfg.Title = "Links"
 	}
 	if cfg.ListenAddr == "" {
 		cfg.ListenAddr = ":8080"

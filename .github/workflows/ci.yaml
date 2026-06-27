@@ -19,9 +19,9 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.0
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6.5.0
         with:
           go-version-file: go.mod
 
@@ -37,13 +37,13 @@ jobs:
         run: |
           test -f internal/server/static/vendor/normalize-8.0.1.min.css
           test -f internal/server/static/vendor/milligram-1.4.1.min.css
-          test -f internal/server/static/vendor/htmx-2.0.4.min.js
+          test -f internal/server/static/vendor/htmx-2.0.10.min.js
 
       - name: Test
         run: go test -mod=vendor ./...
 
       - name: Install Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5.0.1
 
       - name: Lint chart
         run: helm lint $CHART_PATH
@@ -64,14 +64,14 @@ jobs:
       digest: ${{ steps.build.outputs.digest }}
       image: ${{ steps.meta.outputs.tags }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7.0.0
 
-      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-qemu-action@v4.1.0
 
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-buildx-action@v4.1.0
 
       - name: Login to GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4.2.0
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
@@ -79,7 +79,7 @@ jobs:
 
       - name: Extract image metadata
         id: meta
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6.1.0
         with:
           images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
           tags: |
@@ -89,31 +89,45 @@ jobs:
 
       - name: Build and push image
         id: build
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7.2.0
         with:
           context: .
           file: ./Dockerfile
           push: true
           platforms: linux/amd64,linux/arm64
+          build-args: |
+            VERSION=${{ github.ref_name }}
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           provenance: true
-          sbom: true
+          sbom: false
 
       - name: Install cosign
-        uses: sigstore/cosign-installer@v3
+        uses: sigstore/cosign-installer@v4.1.2
 
       - name: Sign image
-        env:
-          COSIGN_EXPERIMENTAL: "1"
         run: |
           while read -r tag; do
             [ -n "$tag" ] || continue
             cosign sign --yes "${tag}@${{ steps.build.outputs.digest }}"
           done <<< "${{ steps.meta.outputs.tags }}"
 
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0.24.0
+        with:
+          image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
+          output-file: simply-dashed-sbom.spdx.json
+          format: spdx-json
+
+      - name: Attest SBOM with cosign
+        run: |
+          cosign attest --yes \
+            --predicate simply-dashed-sbom.spdx.json \
+            --type spdxjson \
+            "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}"
+
       - name: Run Trivy vulnerability scan
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
           format: sarif
@@ -122,7 +136,7 @@ jobs:
           vuln-type: os,library
 
       - name: Generate text vulnerability report
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}
           format: table
@@ -131,20 +145,21 @@ jobs:
           vuln-type: os,library
 
       - name: Upload SARIF
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4.36.2
         with:
           sarif_file: trivy-results.sarif
 
       - name: Upload vulnerability report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7.0.1
         with:
           name: trivy-report
           path: |
             trivy-results.sarif
             trivy-report.txt
+            simply-dashed-sbom.spdx.json
 
       - name: Install Helm
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5.0.1
 
       - name: Package chart
         run: |

@@ -20,13 +20,15 @@ type Server struct {
 	cfg       *config.Config
 	icons     *icons.Cache
 	templates *template.Template
+	version   string
 }
 
 type pageData struct {
-	Title    string
-	Subtitle string
-	Query    string
-	Groups   []groupView
+	Title       string
+	Query       string
+	Groups      []groupView
+	DisplayName string
+	Version     string
 }
 
 type groupView struct {
@@ -42,7 +44,7 @@ type linkView struct {
 	IconPath    string
 }
 
-func New(cfg *config.Config, iconCache *icons.Cache) (*Server, error) {
+func New(cfg *config.Config, iconCache *icons.Cache, version string) (*Server, error) {
 	tpl, err := template.ParseFS(templateFS, "templates/*.gohtml")
 	if err != nil {
 		return nil, err
@@ -51,6 +53,7 @@ func New(cfg *config.Config, iconCache *icons.Cache) (*Server, error) {
 		cfg:       cfg,
 		icons:     iconCache,
 		templates: tpl,
+		version:   version,
 	}, nil
 }
 
@@ -58,18 +61,25 @@ func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", s.handleIndex)
 	mux.HandleFunc("/search", s.handleSearch)
+	mux.HandleFunc("/healthz", s.handleHealth)
 	mux.Handle("/icons/", http.StripPrefix("/icons/", http.FileServer(http.Dir(s.icons.Dir()))))
 	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))))
 	return mux
 }
 
+func (s *Server) handleHealth(w http.ResponseWriter, _ *http.Request) {
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write([]byte("ok"))
+}
+
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	query := strings.TrimSpace(r.URL.Query().Get("q"))
 	data := pageData{
-		Title:    s.cfg.Title,
-		Subtitle: s.cfg.Subtitle,
-		Query:    query,
-		Groups:   s.filterGroups(query),
+		Title:       s.cfg.Title,
+		Query:       query,
+		Groups:      s.filterGroups(query),
+		DisplayName: s.cfg.Title,
+		Version:     s.version,
 	}
 
 	if err := s.templates.ExecuteTemplate(w, "index", data); err != nil {
@@ -80,8 +90,10 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 	query := strings.TrimSpace(r.URL.Query().Get("q"))
 	data := pageData{
-		Query:  query,
-		Groups: s.filterGroups(query),
+		Query:       query,
+		Groups:      s.filterGroups(query),
+		DisplayName: s.cfg.Title,
+		Version:     s.version,
 	}
 
 	if err := s.templates.ExecuteTemplate(w, "results", data); err != nil {

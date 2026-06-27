@@ -35,3 +35,7 @@ app.kubernetes.io/instance: {{ .Release.Name }}
 {{- default "default" .Values.serviceAccount.name -}}
 {{- end -}}
 {{- end -}}
+
+{{- define "simply-dashed.configChecksum" -}}
+{{- toYaml .Values.config | sha256sum -}}
+{{- end -}}

@@ -15,6 +15,8 @@ import (
 	"github.com/localleon/simply-dashed/internal/server"
 )
 
+var version = "dev"
+
 func main() {
 	configPath := flag.String("config", "config.yaml", "Path to YAML configuration")
 	iconDir := flag.String("icon-dir", "data/icons", "Directory for downloaded icons")
@@ -35,7 +37,7 @@ func main() {
 		log.Printf("icon prefetch completed with errors: %v", err)
 	}
 
-	app, err := server.New(cfg, iconCache)
+	app, err := server.New(cfg, iconCache, version)
 	if err != nil {
 		log.Fatalf("create server: %v", err)
 	}
