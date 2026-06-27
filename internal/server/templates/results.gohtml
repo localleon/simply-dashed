@@ -1,0 +1,36 @@
+{{ define "results" }}
+  {{ if .Groups }}
+    {{ range .Groups }}
+      <article class="group">
+        <div class="group-head">
+          <div>
+            <h2>{{ .Name }}</h2>
+            {{ if .Description }}<p>{{ .Description }}</p>{{ end }}
+          </div>
+          <span class="group-count">{{ len .Links }} links</span>
+        </div>
+        <div class="card-grid">
+          {{ range .Links }}
+            <a class="link-card" href="{{ .URL }}" target="_blank" rel="noreferrer">
+              <span class="icon">
+                {{ if .IconPath }}
+                  <img src="{{ .IconPath }}" alt="">
+                {{ else }}
+                  <span class="icon-fallback">{{ printf "%.1s" .Name }}</span>
+                {{ end }}
+              </span>
+              <span class="card-copy">
+                <h3>{{ .Name }}</h3>
+                {{ if .Description }}<p>{{ .Description }}</p>{{ end }}
+              </span>
+            </a>
+          {{ end }}
+        </div>
+      </article>
+    {{ end }}
+  {{ else }}
+    <div class="empty-state">
+      No links match current search.
+    </div>
+  {{ end }}
+{{ end }}

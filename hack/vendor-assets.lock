@@ -1,0 +1,9 @@
+normalize:
+  version: 8.0.1
+  url: https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css
+milligram:
+  version: 1.4.1
+  url: https://cdnjs.cloudflare.com/ajax/libs/milligram/1.4.1/milligram.min.css
+htmx:
+  version: 2.0.4
+  url: https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js

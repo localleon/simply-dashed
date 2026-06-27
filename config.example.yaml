@@ -1,0 +1,26 @@
+title: Simply Dashed
+subtitle: Static dashboard for team links
+listen_addr: ":8080"
+groups:
+  - name: Infrastructure
+    description: Fleet and runtime tooling
+    links:
+      - name: Grafana
+        description: Metrics dashboards and alerts
+        url: https://grafana.example.com
+        icon: https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/grafana.png
+      - name: Argo CD
+        description: GitOps deployment control plane
+        url: https://argo.example.com
+        icon: https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/argo-cd.png
+  - name: Collaboration
+    description: Daily communication tools
+    links:
+      - name: Slack
+        description: Team chat and incident channels
+        url: https://slack.com
+        icon: https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/slack.png
+      - name: GitHub
+        description: Source control and pull requests
+        url: https://github.com
+        icon: https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/github-light.png

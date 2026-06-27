@@ -1,0 +1,119 @@
+replicaCount: 2
+
+image:
+  repository: ghcr.io/localleon/simply-dashed
+  pullPolicy: IfNotPresent
+  tag: ""
+
+nameOverride: ""
+fullnameOverride: ""
+
+podAnnotations: {}
+
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+  automountServiceAccountToken: false
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 65532
+  runAsGroup: 65532
+  fsGroup: 65532
+  seccompProfile:
+    type: RuntimeDefault
+
+securityContext:
+  allowPrivilegeEscalation: false
+  capabilities:
+    drop:
+      - ALL
+  readOnlyRootFilesystem: true
+
+containerPort: 8080
+
+probes:
+  readiness:
+    httpGet:
+      path: /
+      port: http
+    initialDelaySeconds: 3
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+  liveness:
+    httpGet:
+      path: /
+      port: http
+    initialDelaySeconds: 10
+    periodSeconds: 20
+    timeoutSeconds: 3
+    failureThreshold: 3
+  startup:
+    httpGet:
+      path: /
+      port: http
+    periodSeconds: 5
+    timeoutSeconds: 3
+    failureThreshold: 12
+
+service:
+  type: ClusterIP
+  port: 80
+
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  hosts:
+    - host: simply-dashed.local
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 250m
+    memory: 256Mi
+
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 1
+
+topologySpreadConstraints:
+  - maxSkew: 1
+    topologyKey: kubernetes.io/hostname
+    whenUnsatisfiable: DoNotSchedule
+    labelSelector: {}
+
+affinity: {}
+
+networkPolicy:
+  enabled: false
+  ingress:
+    - from: []
+      ports:
+        - protocol: TCP
+          port: 8080
+
+nodeSelector: {}
+
+tolerations: []
+
+config:
+  title: Simply Dashed
+  subtitle: Static dashboard for team links
+  listen_addr: ":8080"
+  groups:
+    - name: Infrastructure
+      description: Fleet and runtime tooling
+      links:
+        - name: Grafana
+          description: Metrics dashboards and alerts
+          url: https://grafana.example.com
+          icon: https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/grafana.png
