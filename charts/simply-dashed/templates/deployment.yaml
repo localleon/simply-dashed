@@ -20,6 +20,9 @@ spec:
     metadata:
       labels:
         {{- include "simply-dashed.selectorLabels" . | nindent 8 }}
+        {{- with .Values.podLabels }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
       annotations:
         checksum/config: {{ include "simply-dashed.configChecksum" . }}
       {{- with .Values.podAnnotations }}
@@ -59,6 +62,9 @@ spec:
               readOnly: true
             - name: tmp
               mountPath: /tmp
+            # We provide an emptyDir volume for icons
+            - name: data
+              mountPath: /app/data
           resources:
             {{- toYaml .Values.resources | nindent 12 }}
       {{- with .Values.affinity }}
@@ -102,3 +108,6 @@ spec:
             name: {{ include "simply-dashed.fullname" . }}
         - name: tmp
           emptyDir: {}
+        - name: data
+          emptyDir: {}
+

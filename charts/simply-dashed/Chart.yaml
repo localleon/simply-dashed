@@ -2,5 +2,5 @@ apiVersion: v2
 name: simply-dashed
 description: Static YAML-driven dashboard built with Go and HTMX
 type: application
-version: 0.1.0
-appVersion: "0.1.0"
+version: 1.0.0
+appVersion: "v1.0.0" # this is set dynamically with CI during releases, do not edit manually

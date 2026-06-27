@@ -19,6 +19,14 @@
     },
     "nameOverride": { "type": "string" },
     "fullnameOverride": { "type": "string" },
+    "commonLabels": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
+    "podLabels": {
+      "type": "object",
+      "additionalProperties": { "type": "string" }
+    },
     "podAnnotations": {
       "type": "object",
       "additionalProperties": { "type": "string" }
@@ -248,6 +256,8 @@
     "image",
     "nameOverride",
     "fullnameOverride",
+    "commonLabels",
+    "podLabels",
     "podAnnotations",
     "serviceAccount",
     "podSecurityContext",

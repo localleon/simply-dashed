@@ -8,6 +8,8 @@ image:
 nameOverride: ""
 fullnameOverride: ""
 
+commonLabels: {}
+podLabels: {}
 podAnnotations: {}
 
 serviceAccount:

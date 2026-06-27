@@ -21,6 +21,9 @@ app.kubernetes.io/name: {{ include "simply-dashed.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 app.kubernetes.io/version: {{ .Chart.AppVersion }}
 app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- with .Values.commonLabels }}
+{{ toYaml . }}
+{{- end }}
 {{- end -}}
 
 {{- define "simply-dashed.selectorLabels" -}}
