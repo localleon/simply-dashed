@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"fmt"
 	"io"
+	"log"
 	"mime"
 	"net/http"
 	"net/url"
@@ -85,6 +86,7 @@ func (c *Cache) Download(ctx context.Context, source string, refresh bool) (stri
 		}
 	}
 
+	// Icon is missing in cache or refresh is requested, download it
 	if !refresh {
 		return "", fmt.Errorf("icon missing in cache and refresh disabled")
 	}
@@ -115,6 +117,8 @@ func (c *Cache) Download(ctx context.Context, source string, refresh bool) (stri
 	if err := os.WriteFile(target, body, 0o644); err != nil {
 		return "", fmt.Errorf("write icon: %w", err)
 	}
+
+	log.Printf("Cache missed, downloaded icon for %s to %s", source, target)
 
 	relPath := "/icons/" + filename
 	c.mu.Lock()
