@@ -17,7 +17,9 @@ WORKDIR /app
 
 COPY --from=build /out/simply-dashed /app/simply-dashed
 COPY config.example.yaml /app/config.yaml
-COPY data/icons /app/data/icons
+
+# We dont build the icons into the image, they will be downloaded on first run and cached in /app/data/icons
+# COPY data/icons /app/data/icons
 
 EXPOSE 8080
 
