@@ -1,4 +1,11 @@
 {{ define "results" }}
+  <div class="result-summary" aria-live="polite">
+    {{ if .Query }}
+      Showing {{ .TotalLinks }} matching {{ if eq .TotalLinks 1 }}link{{ else }}links{{ end }} for "{{ .Query }}".
+    {{ else }}
+      Showing all {{ .TotalLinks }} {{ if eq .TotalLinks 1 }}link{{ else }}links{{ end }}.
+    {{ end }}
+  </div>
   {{ if .Groups }}
     {{ range .Groups }}
       <article class="group">

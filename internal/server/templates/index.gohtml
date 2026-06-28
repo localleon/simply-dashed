@@ -43,6 +43,7 @@
       }
 
       .search-shell {
+        position: relative;
         margin: 0;
         width: 100%;
       }
@@ -63,10 +64,43 @@
         background: var(--sd-surface);
       }
 
+      .search-status {
+        display: flex;
+        align-items: center;
+        min-height: 2.2rem;
+        margin-top: 0.7rem;
+        color: var(--sd-muted);
+        font-size: 1.2rem;
+      }
+
+      .search-indicator {
+        opacity: 0;
+        transition: opacity 120ms ease;
+      }
+
+      .search-indicator.htmx-request,
+      .htmx-request .search-indicator {
+        opacity: 1;
+      }
+
       .results {
         display: grid;
         gap: 1rem;
         margin-top: 1.4rem;
+      }
+
+      .results.htmx-swapping {
+        opacity: 0.45;
+        transition: opacity 90ms ease;
+      }
+
+      .results.htmx-settling {
+        animation: results-in 140ms ease-out;
+      }
+
+      .result-summary {
+        color: var(--sd-muted);
+        font-size: 1.25rem;
       }
 
       .group {
@@ -186,6 +220,11 @@
         padding: 0 0.4rem;
       }
 
+      @keyframes results-in {
+        from { opacity: 0.55; transform: translateY(0.2rem); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+
       @media (max-width: 720px) {
         html { font-size: 56%; }
         main { width: min(100vw - 1rem, 1040px); padding-top: 1rem; }
@@ -216,7 +255,7 @@
   <body>
     <main>
       <section class="shell">
-        <form class="search-shell" role="search">
+        <form class="search-shell" role="search" action="/" method="get">
           <input
             type="search"
             name="q"
@@ -224,9 +263,14 @@
             placeholder="Search links, groups, descriptions, URLs"
             autocomplete="off"
             hx-get="/search"
-            hx-trigger="input changed delay:90ms, search"
+            hx-trigger="input changed delay:120ms, search"
+            hx-sync="closest form:replace"
+            hx-indicator="#search-indicator"
             hx-target="#results"
             hx-swap="innerHTML">
+          <div class="search-status">
+            <span id="search-indicator" class="search-indicator">Updating results...</span>
+          </div>
         </form>
         <section id="results" class="results">
           {{ template "results" . }}

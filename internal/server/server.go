@@ -3,7 +3,9 @@ package server
 import (
 	"embed"
 	"html/template"
+	"io/fs"
 	"net/http"
+	"net/url"
 	"strings"
 
 	"github.com/localleon/simply-dashed/internal/config"
@@ -27,6 +29,7 @@ type pageData struct {
 	Title       string
 	Query       string
 	Groups      []groupView
+	TotalLinks  int
 	DisplayName string
 	Version     string
 }
@@ -63,7 +66,11 @@ func (s *Server) Handler() http.Handler {
 	mux.HandleFunc("/search", s.handleSearch)
 	mux.HandleFunc("/healthz", s.handleHealth)
 	mux.Handle("/icons/", http.StripPrefix("/icons/", http.FileServer(http.Dir(s.icons.Dir()))))
-	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFS))))
+	staticFiles, err := fs.Sub(staticFS, "static")
+	if err != nil {
+		panic(err)
+	}
+	mux.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.FS(staticFiles))))
 	return mux
 }
 
@@ -74,13 +81,8 @@ func (s *Server) handleHealth(w http.ResponseWriter, _ *http.Request) {
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 	query := strings.TrimSpace(r.URL.Query().Get("q"))
-	data := pageData{
-		Title:       s.cfg.Title,
-		Query:       query,
-		Groups:      s.filterGroups(query),
-		DisplayName: s.cfg.Title,
-		Version:     s.version,
-	}
+	data := s.newPageData(query)
+	data.Title = s.cfg.Title
 
 	if err := s.templates.ExecuteTemplate(w, "index", data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -89,21 +91,31 @@ func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
 
 func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
 	query := strings.TrimSpace(r.URL.Query().Get("q"))
-	data := pageData{
-		Query:       query,
-		Groups:      s.filterGroups(query),
-		DisplayName: s.cfg.Title,
-		Version:     s.version,
+	if r.Header.Get("HX-Request") == "true" {
+		w.Header().Set("HX-Push-Url", searchPageURL(query))
 	}
+	data := s.newPageData(query)
 
 	if err := s.templates.ExecuteTemplate(w, "results", data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func (s *Server) filterGroups(query string) []groupView {
+func (s *Server) newPageData(query string) pageData {
+	groups, totalLinks := s.filterGroups(query)
+	return pageData{
+		Query:       query,
+		Groups:      groups,
+		TotalLinks:  totalLinks,
+		DisplayName: s.cfg.Title,
+		Version:     s.version,
+	}
+}
+
+func (s *Server) filterGroups(query string) ([]groupView, int) {
 	query = strings.ToLower(strings.TrimSpace(query))
 	var out []groupView
+	totalLinks := 0
 
 	for _, group := range s.cfg.Groups {
 		view := groupView{
@@ -119,6 +131,7 @@ func (s *Server) filterGroups(query string) []groupView {
 					URL:         link.URL,
 					IconPath:    s.icons.Resolve(link.Icon),
 				})
+				totalLinks++
 			}
 		}
 
@@ -127,7 +140,14 @@ func (s *Server) filterGroups(query string) []groupView {
 		}
 	}
 
-	return out
+	return out, totalLinks
+}
+
+func searchPageURL(query string) string {
+	if query == "" {
+		return "/"
+	}
+	return "/?q=" + url.QueryEscape(query)
 }
 
 func matchesQuery(query string, group config.Group, link config.Link) bool {

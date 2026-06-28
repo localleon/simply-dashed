@@ -81,7 +81,10 @@ func TestHandleIndexRendersFooterAndAssets(t *testing.T) {
 	body := rec.Body.String()
 	for _, want := range []string{
 		"/static/vendor/htmx-2.0.10.min.js",
-		`hx-trigger="input changed delay:90ms, search"`,
+		`hx-trigger="input changed delay:120ms, search"`,
+		`hx-sync="closest form:replace"`,
+		`hx-indicator="#search-indicator"`,
+		`Showing all 2 links.`,
 		`<footer class="footer">Links <span>·</span> v1.2.3</footer>`,
 		`/icons/`,
 	} {
@@ -102,6 +105,7 @@ func TestHandleSearchFiltersResults(t *testing.T) {
 
 	srv := newTestServer(t)
 	req := httptest.NewRequest(http.MethodGet, "/search?q=gra", nil)
+	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 
 	srv.Handler().ServeHTTP(rec, req)
@@ -109,13 +113,73 @@ func TestHandleSearchFiltersResults(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
 	}
+	if got, want := rec.Header().Get("HX-Push-Url"), "/?q=gra"; got != want {
+		t.Fatalf("HX-Push-Url = %q, want %q", got, want)
+	}
 
 	body := rec.Body.String()
+	if !strings.Contains(body, `Showing 1 matching link for "gra".`) {
+		t.Fatalf("body missing filtered result summary")
+	}
 	if !strings.Contains(body, "Grafana") {
 		t.Fatalf("body missing Grafana result")
 	}
 	if strings.Contains(body, "Argo CD") {
 		t.Fatalf("body unexpectedly contains non-matching result")
+	}
+}
+
+func TestHandleSearchPushesIndexURLForEmptyQuery(t *testing.T) {
+	t.Parallel()
+
+	srv := newTestServer(t)
+	req := httptest.NewRequest(http.MethodGet, "/search?q=", nil)
+	req.Header.Set("HX-Request", "true")
+	rec := httptest.NewRecorder()
+
+	srv.Handler().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+	if got, want := rec.Header().Get("HX-Push-Url"), "/"; got != want {
+		t.Fatalf("HX-Push-Url = %q, want %q", got, want)
+	}
+	if !strings.Contains(rec.Body.String(), "Showing all 2 links.") {
+		t.Fatalf("body missing all-results summary")
+	}
+}
+
+func TestStaticAssetsServeBrowserMIMETypes(t *testing.T) {
+	t.Parallel()
+
+	srv := newTestServer(t)
+	tests := []struct {
+		path        string
+		contentType string
+	}{
+		{
+			path:        "/static/vendor/normalize-8.0.1.min.css",
+			contentType: "text/css",
+		},
+		{
+			path:        "/static/vendor/htmx-2.0.10.min.js",
+			contentType: "text/javascript",
+		},
+	}
+
+	for _, tt := range tests {
+		req := httptest.NewRequest(http.MethodGet, tt.path, nil)
+		rec := httptest.NewRecorder()
+
+		srv.Handler().ServeHTTP(rec, req)
+
+		if rec.Code != http.StatusOK {
+			t.Fatalf("%s status = %d, want %d", tt.path, rec.Code, http.StatusOK)
+		}
+		if got := rec.Header().Get("Content-Type"); !strings.HasPrefix(got, tt.contentType) {
+			t.Fatalf("%s Content-Type = %q, want prefix %q", tt.path, got, tt.contentType)
+		}
 	}
 }
 
