@@ -11,79 +11,158 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "repository": { "type": "string", "minLength": 1 },
-        "pullPolicy": { "type": "string", "enum": ["Always", "IfNotPresent", "Never"] },
-        "tag": { "type": "string" }
+        "repository": {
+          "type": "string",
+          "minLength": 1
+        },
+        "pullPolicy": {
+          "type": "string",
+          "enum": [
+            "Always",
+            "IfNotPresent",
+            "Never"
+          ]
+        },
+        "tag": {
+          "type": "string"
+        }
       },
-      "required": ["repository", "pullPolicy", "tag"]
+      "required": [
+        "repository",
+        "pullPolicy",
+        "tag"
+      ]
     },
-    "nameOverride": { "type": "string" },
-    "fullnameOverride": { "type": "string" },
+    "nameOverride": {
+      "type": "string"
+    },
+    "fullnameOverride": {
+      "type": "string"
+    },
     "commonLabels": {
       "type": "object",
-      "additionalProperties": { "type": "string" }
+      "additionalProperties": {
+        "type": "string"
+      }
     },
     "podLabels": {
       "type": "object",
-      "additionalProperties": { "type": "string" }
+      "additionalProperties": {
+        "type": "string"
+      }
     },
     "podAnnotations": {
       "type": "object",
-      "additionalProperties": { "type": "string" }
+      "additionalProperties": {
+        "type": "string"
+      }
     },
     "serviceAccount": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "create": { "type": "boolean" },
+        "create": {
+          "type": "boolean"
+        },
         "annotations": {
           "type": "object",
-          "additionalProperties": { "type": "string" }
+          "additionalProperties": {
+            "type": "string"
+          }
         },
-        "name": { "type": "string" },
-        "automountServiceAccountToken": { "type": "boolean" }
+        "name": {
+          "type": "string"
+        },
+        "automountServiceAccountToken": {
+          "type": "boolean"
+        }
       },
-      "required": ["create", "annotations", "name", "automountServiceAccountToken"]
+      "required": [
+        "create",
+        "annotations",
+        "name",
+        "automountServiceAccountToken"
+      ]
     },
     "podSecurityContext": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "runAsNonRoot": { "type": "boolean" },
-        "runAsUser": { "type": "integer", "minimum": 1 },
-        "runAsGroup": { "type": "integer", "minimum": 1 },
-        "fsGroup": { "type": "integer", "minimum": 1 },
+        "runAsNonRoot": {
+          "type": "boolean"
+        },
+        "runAsUser": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "runAsGroup": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "fsGroup": {
+          "type": "integer",
+          "minimum": 1
+        },
         "seccompProfile": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "type": { "type": "string", "enum": ["RuntimeDefault", "Localhost"] }
+            "type": {
+              "type": "string",
+              "enum": [
+                "RuntimeDefault",
+                "Localhost"
+              ]
+            }
           },
-          "required": ["type"]
+          "required": [
+            "type"
+          ]
         }
       },
-      "required": ["runAsNonRoot", "runAsUser", "runAsGroup", "fsGroup", "seccompProfile"]
+      "required": [
+        "runAsNonRoot",
+        "runAsUser",
+        "runAsGroup",
+        "fsGroup",
+        "seccompProfile"
+      ]
     },
     "securityContext": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "allowPrivilegeEscalation": { "type": "boolean", "const": false },
+        "allowPrivilegeEscalation": {
+          "type": "boolean",
+          "const": false
+        },
         "capabilities": {
           "type": "object",
           "additionalProperties": false,
           "properties": {
             "drop": {
               "type": "array",
-              "items": { "type": "string" },
-              "contains": { "const": "ALL" }
+              "items": {
+                "type": "string"
+              },
+              "contains": {
+                "const": "ALL"
+              }
             }
           },
-          "required": ["drop"]
+          "required": [
+            "drop"
+          ]
         },
-        "readOnlyRootFilesystem": { "type": "boolean" }
+        "readOnlyRootFilesystem": {
+          "type": "boolean"
+        }
       },
-      "required": ["allowPrivilegeEscalation", "capabilities", "readOnlyRootFilesystem"]
+      "required": [
+        "allowPrivilegeEscalation",
+        "capabilities",
+        "readOnlyRootFilesystem"
+      ]
     },
     "containerPort": {
       "type": "integer",
@@ -94,30 +173,60 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "readiness": { "$ref": "#/definitions/httpProbe" },
-        "liveness": { "$ref": "#/definitions/httpProbe" },
-        "startup": { "$ref": "#/definitions/httpProbe" }
+        "readiness": {
+          "$ref": "#/definitions/httpProbe"
+        },
+        "liveness": {
+          "$ref": "#/definitions/httpProbe"
+        },
+        "startup": {
+          "$ref": "#/definitions/httpProbe"
+        }
       },
-      "required": ["readiness", "liveness", "startup"]
+      "required": [
+        "readiness",
+        "liveness",
+        "startup"
+      ]
     },
     "service": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "type": { "type": "string", "enum": ["ClusterIP", "NodePort", "LoadBalancer"] },
-        "port": { "type": "integer", "minimum": 1, "maximum": 65535 }
+        "type": {
+          "type": "string",
+          "enum": [
+            "ClusterIP",
+            "NodePort",
+            "LoadBalancer"
+          ]
+        },
+        "port": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 65535
+        }
       },
-      "required": ["type", "port"]
+      "required": [
+        "type",
+        "port"
+      ]
     },
     "ingress": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "enabled": { "type": "boolean" },
-        "className": { "type": "string" },
+        "enabled": {
+          "type": "boolean"
+        },
+        "className": {
+          "type": "string"
+        },
         "annotations": {
           "type": "object",
-          "additionalProperties": { "type": "string" }
+          "additionalProperties": {
+            "type": "string"
+          }
         },
         "hosts": {
           "type": "array",
@@ -125,52 +234,97 @@
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "host": { "type": "string", "minLength": 1 },
+              "host": {
+                "type": "string",
+                "minLength": 1
+              },
               "paths": {
                 "type": "array",
                 "items": {
                   "type": "object",
                   "additionalProperties": false,
                   "properties": {
-                    "path": { "type": "string", "minLength": 1 },
-                    "pathType": { "type": "string", "enum": ["Prefix", "Exact", "ImplementationSpecific"] }
+                    "path": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "pathType": {
+                      "type": "string",
+                      "enum": [
+                        "Prefix",
+                        "Exact",
+                        "ImplementationSpecific"
+                      ]
+                    }
                   },
-                  "required": ["path", "pathType"]
+                  "required": [
+                    "path",
+                    "pathType"
+                  ]
                 }
               }
             },
-            "required": ["host", "paths"]
+            "required": [
+              "host",
+              "paths"
+            ]
           }
         },
         "tls": {
           "type": "array",
-          "items": { "type": "object" }
+          "items": {
+            "type": "object"
+          }
         }
       },
-      "required": ["enabled", "className", "annotations", "hosts", "tls"]
+      "required": [
+        "enabled",
+        "className",
+        "annotations",
+        "hosts",
+        "tls"
+      ]
     },
     "resources": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "requests": { "$ref": "#/definitions/resourceList" },
-        "limits": { "$ref": "#/definitions/resourceList" }
+        "requests": {
+          "$ref": "#/definitions/resourceList"
+        },
+        "limits": {
+          "$ref": "#/definitions/resourceList"
+        }
       },
-      "required": ["requests", "limits"]
+      "required": [
+        "requests",
+        "limits"
+      ]
     },
     "podDisruptionBudget": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "enabled": { "type": "boolean" },
+        "enabled": {
+          "type": "boolean"
+        },
         "minAvailable": {
           "oneOf": [
-            { "type": "integer", "minimum": 1 },
-            { "type": "string", "pattern": "^[0-9]+%$" }
+            {
+              "type": "integer",
+              "minimum": 1
+            },
+            {
+              "type": "string",
+              "pattern": "^[0-9]+%$"
+            }
           ]
         }
       },
-      "required": ["enabled", "minAvailable"]
+      "required": [
+        "enabled",
+        "minAvailable"
+      ]
     },
     "topologySpreadConstraints": {
       "type": "array",
@@ -178,12 +332,31 @@
         "type": "object",
         "additionalProperties": false,
         "properties": {
-          "maxSkew": { "type": "integer", "minimum": 1 },
-          "topologyKey": { "type": "string", "minLength": 1 },
-          "whenUnsatisfiable": { "type": "string", "enum": ["DoNotSchedule", "ScheduleAnyway"] },
-          "labelSelector": { "type": "object" }
+          "maxSkew": {
+            "type": "integer",
+            "minimum": 1
+          },
+          "topologyKey": {
+            "type": "string",
+            "minLength": 1
+          },
+          "whenUnsatisfiable": {
+            "type": "string",
+            "enum": [
+              "DoNotSchedule",
+              "ScheduleAnyway"
+            ]
+          },
+          "labelSelector": {
+            "type": "object"
+          }
         },
-        "required": ["maxSkew", "topologyKey", "whenUnsatisfiable", "labelSelector"]
+        "required": [
+          "maxSkew",
+          "topologyKey",
+          "whenUnsatisfiable",
+          "labelSelector"
+        ]
       }
     },
     "affinity": {
@@ -193,7 +366,9 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "enabled": { "type": "boolean" },
+        "enabled": {
+          "type": "boolean"
+        },
         "ingress": {
           "type": "array",
           "items": {
@@ -201,7 +376,10 @@
           }
         }
       },
-      "required": ["enabled", "ingress"]
+      "required": [
+        "enabled",
+        "ingress"
+      ]
     },
     "nodeSelector": {
       "type": "object"
@@ -216,39 +394,98 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "title": { "type": "string" },
-        "subtitle": { "type": "string" },
-        "listen_addr": { "type": "string" },
-        "groups": {
+        "title": {
+          "type": "string"
+        },
+        "subtitle": {
+          "type": "string"
+        },
+        "listen_addr": {
+          "type": "string"
+        },
+        "dashboards": {
           "type": "array",
           "minItems": 1,
           "items": {
             "type": "object",
             "additionalProperties": false,
             "properties": {
-              "name": { "type": "string", "minLength": 1 },
-              "description": { "type": "string" },
-              "links": {
+              "path": {
+                "type": "string",
+                "minLength": 1
+              },
+              "title": {
+                "type": "string"
+              },
+              "subtitle": {
+                "type": "string"
+              },
+              "groups": {
                 "type": "array",
                 "minItems": 1,
                 "items": {
                   "type": "object",
                   "additionalProperties": false,
                   "properties": {
-                    "name": { "type": "string", "minLength": 1 },
-                    "description": { "type": "string" },
-                    "url": { "type": "string", "minLength": 1 },
-                    "icon": { "type": "string" }
+                    "name": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "links": {
+                      "type": "array",
+                      "minItems": 1,
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "properties": {
+                          "name": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "description": {
+                            "type": "string"
+                          },
+                          "url": {
+                            "type": "string",
+                            "minLength": 1
+                          },
+                          "icon": {
+                            "type": "string"
+                          }
+                        },
+                        "required": [
+                          "name",
+                          "description",
+                          "url",
+                          "icon"
+                        ]
+                      }
+                    }
                   },
-                  "required": ["name", "description", "url", "icon"]
+                  "required": [
+                    "name",
+                    "description",
+                    "links"
+                  ]
                 }
               }
             },
-            "required": ["name", "description", "links"]
+            "required": [
+              "path",
+              "groups"
+            ]
           }
         }
       },
-      "required": ["title", "subtitle", "listen_addr", "groups"]
+      "required": [
+        "title",
+        "subtitle",
+        "listen_addr",
+        "dashboards"
+      ]
     }
   },
   "required": [
@@ -284,31 +521,70 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "path": { "type": "string", "minLength": 1 },
+            "path": {
+              "type": "string",
+              "minLength": 1
+            },
             "port": {
               "oneOf": [
-                { "type": "integer", "minimum": 1, "maximum": 65535 },
-                { "type": "string", "minLength": 1 }
+                {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 65535
+                },
+                {
+                  "type": "string",
+                  "minLength": 1
+                }
               ]
             }
           },
-          "required": ["path", "port"]
+          "required": [
+            "path",
+            "port"
+          ]
         },
-        "initialDelaySeconds": { "type": "integer", "minimum": 0 },
-        "periodSeconds": { "type": "integer", "minimum": 1 },
-        "timeoutSeconds": { "type": "integer", "minimum": 1 },
-        "failureThreshold": { "type": "integer", "minimum": 1 }
+        "initialDelaySeconds": {
+          "type": "integer",
+          "minimum": 0
+        },
+        "periodSeconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "timeoutSeconds": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "failureThreshold": {
+          "type": "integer",
+          "minimum": 1
+        }
       },
-      "required": ["httpGet", "periodSeconds", "timeoutSeconds", "failureThreshold"]
+      "required": [
+        "httpGet",
+        "periodSeconds",
+        "timeoutSeconds",
+        "failureThreshold"
+      ]
     },
     "resourceList": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "cpu": { "type": "string", "minLength": 1 },
-        "memory": { "type": "string", "minLength": 1 }
+        "cpu": {
+          "type": "string",
+          "minLength": 1
+        },
+        "memory": {
+          "type": "string",
+          "minLength": 1
+        }
       },
-      "required": ["cpu", "memory"]
+      "required": [
+        "cpu",
+        "memory"
+      ]
     }
   }
 }

@@ -36,22 +36,40 @@ func newTestServer(t *testing.T) *Server {
 	}
 
 	cfg := &config.Config{
-		Title: "Links",
-		Groups: []config.Group{
+		Title:    "Dashboards",
+		Subtitle: "Configured dashboards",
+		Dashboards: []config.Dashboard{
 			{
-				Name:        "Infrastructure",
-				Description: "Ops tools",
-				Links: []config.Link{
+				Path:     "/infra",
+				Title:    "Infrastructure",
+				Subtitle: "Ops tools",
+				Groups: []config.Group{
 					{
-						Name:        "Grafana",
-						Description: "Dashboards",
-						URL:         "https://grafana.example.com",
-						Icon:        iconSource,
+						Name:        "Infrastructure",
+						Description: "Ops tools",
+						Links: []config.Link{
+							{
+								Name:        "Grafana",
+								Description: "Dashboards",
+								URL:         "https://grafana.example.com",
+								Icon:        iconSource,
+							},
+							{
+								Name:        "Argo CD",
+								Description: "Deployments",
+								URL:         "https://argo.example.com",
+							},
+						},
 					},
+				},
+			},
+			{
+				Path:  "/collab",
+				Title: "Collaboration",
+				Groups: []config.Group{
 					{
-						Name:        "Argo CD",
-						Description: "Deployments",
-						URL:         "https://argo.example.com",
+						Name:  "Collaboration",
+						Links: []config.Link{{Name: "Slack", URL: "https://slack.com"}},
 					},
 				},
 			},
@@ -65,7 +83,7 @@ func newTestServer(t *testing.T) *Server {
 	return srv
 }
 
-func TestHandleIndexRendersFooterAndAssets(t *testing.T) {
+func TestHandleRootListsDashboards(t *testing.T) {
 	t.Parallel()
 
 	srv := newTestServer(t)
@@ -80,13 +98,11 @@ func TestHandleIndexRendersFooterAndAssets(t *testing.T) {
 
 	body := rec.Body.String()
 	for _, want := range []string{
-		"/static/vendor/htmx-2.0.10.min.js",
-		`hx-trigger="input changed delay:120ms, search"`,
-		`hx-sync="closest form:replace"`,
-		`hx-indicator="#search-indicator"`,
-		`Showing all 2 links.`,
-		`<footer class="footer">Links <span>·</span> v1.2.3</footer>`,
-		`/icons/`,
+		"Infrastructure",
+		"/infra/",
+		"Collaboration",
+		"/collab/",
+		"v1.2.3",
 	} {
 		if !strings.Contains(body, want) {
 			t.Fatalf("body missing %q", want)
@@ -104,7 +120,7 @@ func TestHandleSearchFiltersResults(t *testing.T) {
 	t.Parallel()
 
 	srv := newTestServer(t)
-	req := httptest.NewRequest(http.MethodGet, "/search?q=gra", nil)
+	req := httptest.NewRequest(http.MethodGet, "/infra/search?q=gra", nil)
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 
@@ -113,7 +129,7 @@ func TestHandleSearchFiltersResults(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
 	}
-	if got, want := rec.Header().Get("HX-Push-Url"), "/?q=gra"; got != want {
+	if got, want := rec.Header().Get("HX-Push-Url"), "/infra/?q=gra"; got != want {
 		t.Fatalf("HX-Push-Url = %q, want %q", got, want)
 	}
 
@@ -133,7 +149,7 @@ func TestHandleSearchPushesIndexURLForEmptyQuery(t *testing.T) {
 	t.Parallel()
 
 	srv := newTestServer(t)
-	req := httptest.NewRequest(http.MethodGet, "/search?q=", nil)
+	req := httptest.NewRequest(http.MethodGet, "/infra/search?q=", nil)
 	req.Header.Set("HX-Request", "true")
 	rec := httptest.NewRecorder()
 
@@ -142,11 +158,56 @@ func TestHandleSearchPushesIndexURLForEmptyQuery(t *testing.T) {
 	if rec.Code != http.StatusOK {
 		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
 	}
-	if got, want := rec.Header().Get("HX-Push-Url"), "/"; got != want {
+	if got, want := rec.Header().Get("HX-Push-Url"), "/infra/"; got != want {
 		t.Fatalf("HX-Push-Url = %q, want %q", got, want)
 	}
 	if !strings.Contains(rec.Body.String(), "Showing all 2 links.") {
 		t.Fatalf("body missing all-results summary")
+	}
+}
+
+func TestHandleSearchRendersFullPageForBrowserNavigation(t *testing.T) {
+	t.Parallel()
+
+	srv := newTestServer(t)
+	req := httptest.NewRequest(http.MethodGet, "/infra/search?q=Argo", nil)
+	rec := httptest.NewRecorder()
+
+	srv.Handler().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusOK {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusOK)
+	}
+	body := rec.Body.String()
+	for _, want := range []string{
+		"<html lang=\"en\">",
+		"<title>Infrastructure</title>",
+		"Argo CD",
+		`hx-get="search"`,
+	} {
+		if !strings.Contains(body, want) {
+			t.Fatalf("body missing %q", want)
+		}
+	}
+	if strings.Contains(body, `{{ template "results" . }}`) {
+		t.Fatalf("body appears to contain template source")
+	}
+}
+
+func TestDashboardBasePathRedirectsToTrailingSlash(t *testing.T) {
+	t.Parallel()
+
+	srv := newTestServer(t)
+	req := httptest.NewRequest(http.MethodGet, "/infra", nil)
+	rec := httptest.NewRecorder()
+
+	srv.Handler().ServeHTTP(rec, req)
+
+	if rec.Code != http.StatusMovedPermanently {
+		t.Fatalf("status = %d, want %d", rec.Code, http.StatusMovedPermanently)
+	}
+	if got, want := rec.Header().Get("Location"), "/infra/"; got != want {
+		t.Fatalf("Location = %q, want %q", got, want)
 	}
 }
 

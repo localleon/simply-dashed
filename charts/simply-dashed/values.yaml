@@ -108,14 +108,18 @@ nodeSelector: {}
 tolerations: []
 
 config:
-  title: Links
-  subtitle: Static dashboard for team links
+  title: Dashboards
+  subtitle: Static dashboard index
   listen_addr: ":8080"
-  groups:
-    - name: Infrastructure
-      description: Fleet and runtime tooling
-      links:
-        - name: Grafana
-          description: Metrics dashboards and alerts
-          url: https://grafana.example.com
-          icon: https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/grafana.png
+  dashboards:
+    - path: /infra
+      title: Infrastructure
+      subtitle: Fleet and runtime tooling
+      groups:
+        - name: Infrastructure
+          description: Fleet and runtime tooling
+          links:
+            - name: Grafana
+              description: Metrics dashboards and alerts
+              url: https://grafana.example.com
+              icon: https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/grafana.png

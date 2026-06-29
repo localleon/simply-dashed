@@ -42,6 +42,22 @@
         background: var(--sd-surface);
       }
 
+      .hero {
+        margin-bottom: 1.2rem;
+      }
+
+      .hero h1 {
+        margin: 0;
+        font-size: 2.3rem;
+        letter-spacing: -0.02em;
+      }
+
+      .hero p {
+        margin: 0.35rem 0 0;
+        color: var(--sd-muted);
+        font-size: 1.35rem;
+      }
+
       .search-shell {
         position: relative;
         margin: 0;
@@ -255,14 +271,18 @@
   <body>
     <main>
       <section class="shell">
-        <form class="search-shell" role="search" action="/" method="get">
+        <header class="hero">
+          <h1>{{ .Title }}</h1>
+          {{ if .Subtitle }}<p>{{ .Subtitle }}</p>{{ end }}
+        </header>
+        <form class="search-shell" role="search" action="search" method="get">
           <input
             type="search"
             name="q"
             value="{{ .Query }}"
             placeholder="Search links, groups, descriptions, URLs"
             autocomplete="off"
-            hx-get="/search"
+            hx-get="search"
             hx-trigger="input changed delay:120ms, search"
             hx-sync="closest form:replace"
             hx-indicator="#search-indicator"

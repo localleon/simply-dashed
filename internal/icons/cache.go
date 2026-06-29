@@ -49,13 +49,15 @@ func (c *Cache) SetHTTPClient(client *http.Client) {
 
 func (c *Cache) Prime(ctx context.Context, cfg *config.Config, refresh bool) error {
 	var errs []string
-	for _, group := range cfg.Groups {
-		for _, link := range group.Links {
-			if strings.TrimSpace(link.Icon) == "" {
-				continue
-			}
-			if _, err := c.Download(ctx, link.Icon, refresh); err != nil {
-				errs = append(errs, fmt.Sprintf("%s: %v", link.Name, err))
+	for _, dashboard := range cfg.Dashboards {
+		for _, group := range dashboard.Groups {
+			for _, link := range group.Links {
+				if strings.TrimSpace(link.Icon) == "" {
+					continue
+				}
+				if _, err := c.Download(ctx, link.Icon, refresh); err != nil {
+					errs = append(errs, fmt.Sprintf("%s: %v", link.Name, err))
+				}
 			}
 		}
 	}

@@ -4,7 +4,7 @@ Static dashboard app in Go with HTMX and YAML config.
 
 ## Features
 
-- YAML-driven groups and links
+- YAML-driven dashboard index with per-dashboard groups and links
 - One global search bar with HTMX partial updates
 - Local static asset vendoring for airgapped use
 - Startup icon refresh with local cache fallback
@@ -67,15 +67,21 @@ Chart defaults target stricter clusters:
 ## Config
 
 ```yaml
-title: Links
-subtitle: Static dashboard for team links
+title: Dashboards
+subtitle: Static dashboard index
 listen_addr: ":8080"
-groups:
-  - name: Infrastructure
-    description: Fleet and runtime tooling
-    links:
-      - name: Grafana
-        description: Metrics dashboards and alerts
-        url: https://grafana.example.com
-        icon: https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/grafana.png
+dashboards:
+  - path: /infra
+    title: Infrastructure
+    subtitle: Fleet and runtime tooling
+    groups:
+      - name: Infrastructure
+        description: Fleet and runtime tooling
+        links:
+          - name: Grafana
+            description: Metrics dashboards and alerts
+            url: https://grafana.example.com
+            icon: https://cdn.jsdelivr.net/gh/walkxcode/dashboard-icons/png/grafana.png
 ```
+
+The root page lists all configured dashboards, and each dashboard serves its own search and link groups under its configured path.

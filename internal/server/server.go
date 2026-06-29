@@ -27,11 +27,25 @@ type Server struct {
 
 type pageData struct {
 	Title       string
+	Subtitle    string
 	Query       string
 	Groups      []groupView
 	TotalLinks  int
 	DisplayName string
 	Version     string
+}
+
+type dashboardIndexData struct {
+	Title      string
+	Subtitle   string
+	Dashboards []dashboardSummary
+	Version    string
+}
+
+type dashboardSummary struct {
+	Title    string
+	Subtitle string
+	Path     string
 }
 
 type groupView struct {
@@ -63,7 +77,6 @@ func New(cfg *config.Config, iconCache *icons.Cache, version string) (*Server, e
 func (s *Server) Handler() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", s.handleIndex)
-	mux.HandleFunc("/search", s.handleSearch)
 	mux.HandleFunc("/healthz", s.handleHealth)
 	mux.Handle("/icons/", http.StripPrefix("/icons/", http.FileServer(http.Dir(s.icons.Dir()))))
 	staticFiles, err := fs.Sub(staticFS, "static")
@@ -80,44 +93,101 @@ func (s *Server) handleHealth(w http.ResponseWriter, _ *http.Request) {
 }
 
 func (s *Server) handleIndex(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path == "/" {
+		s.handleDashboardIndex(w, r)
+		return
+	}
+
+	dashboard, remainder, ok := s.matchDashboard(r.URL.Path)
+	if !ok {
+		http.NotFound(w, r)
+		return
+	}
+
+	switch remainder {
+	case "":
+		http.Redirect(w, r, dashboard.Path+"/"+querySuffix(r.URL.RawQuery), http.StatusMovedPermanently)
+	case "/":
+		s.handleDashboardPage(w, r, dashboard)
+	case "/search":
+		s.handleSearch(w, r, dashboard)
+	default:
+		http.NotFound(w, r)
+	}
+}
+
+func (s *Server) handleDashboardIndex(w http.ResponseWriter, r *http.Request) {
+	data := dashboardIndexData{
+		Title:      s.cfg.Title,
+		Subtitle:   s.cfg.Subtitle,
+		Dashboards: s.dashboardSummaries(),
+		Version:    s.version,
+	}
+
+	if err := s.templates.ExecuteTemplate(w, "dashboards", data); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+}
+
+func (s *Server) handleDashboardPage(w http.ResponseWriter, r *http.Request, dashboard *config.Dashboard) {
 	query := strings.TrimSpace(r.URL.Query().Get("q"))
-	data := s.newPageData(query)
-	data.Title = s.cfg.Title
+	data := s.newPageData(dashboard, query)
 
 	if err := s.templates.ExecuteTemplate(w, "index", data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request) {
+func (s *Server) handleSearch(w http.ResponseWriter, r *http.Request, dashboard *config.Dashboard) {
 	query := strings.TrimSpace(r.URL.Query().Get("q"))
 	if r.Header.Get("HX-Request") == "true" {
-		w.Header().Set("HX-Push-Url", searchPageURL(query))
-	}
-	data := s.newPageData(query)
+		w.Header().Set("HX-Push-Url", searchPageURL(dashboard.Path, query))
+		data := s.newPageData(dashboard, query)
 
-	if err := s.templates.ExecuteTemplate(w, "results", data); err != nil {
+		if err := s.templates.ExecuteTemplate(w, "results", data); err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+		}
+		return
+	}
+
+	data := s.newPageData(dashboard, query)
+
+	if err := s.templates.ExecuteTemplate(w, "index", data); err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
 }
 
-func (s *Server) newPageData(query string) pageData {
-	groups, totalLinks := s.filterGroups(query)
+func (s *Server) newPageData(dashboard *config.Dashboard, query string) pageData {
+	groups, totalLinks := s.filterGroups(dashboard.Groups, query)
 	return pageData{
+		Title:       dashboard.Title,
+		Subtitle:    dashboard.Subtitle,
 		Query:       query,
 		Groups:      groups,
 		TotalLinks:  totalLinks,
-		DisplayName: s.cfg.Title,
+		DisplayName: dashboard.Title,
 		Version:     s.version,
 	}
 }
 
-func (s *Server) filterGroups(query string) ([]groupView, int) {
+func (s *Server) dashboardSummaries() []dashboardSummary {
+	out := make([]dashboardSummary, 0, len(s.cfg.Dashboards))
+	for _, dashboard := range s.cfg.Dashboards {
+		out = append(out, dashboardSummary{
+			Title:    dashboard.Title,
+			Subtitle: dashboard.Subtitle,
+			Path:     dashboard.Path + "/",
+		})
+	}
+	return out
+}
+
+func (s *Server) filterGroups(groups []config.Group, query string) ([]groupView, int) {
 	query = strings.ToLower(strings.TrimSpace(query))
 	var out []groupView
 	totalLinks := 0
 
-	for _, group := range s.cfg.Groups {
+	for _, group := range groups {
 		view := groupView{
 			Name:        group.Name,
 			Description: group.Description,
@@ -143,11 +213,41 @@ func (s *Server) filterGroups(query string) ([]groupView, int) {
 	return out, totalLinks
 }
 
-func searchPageURL(query string) string {
-	if query == "" {
-		return "/"
+func (s *Server) matchDashboard(path string) (*config.Dashboard, string, bool) {
+	var match *config.Dashboard
+	longest := -1
+	var remainder string
+	for i := range s.cfg.Dashboards {
+		dashboard := &s.cfg.Dashboards[i]
+		if path == dashboard.Path || strings.HasPrefix(path, dashboard.Path+"/") {
+			if len(dashboard.Path) > longest {
+				match = dashboard
+				longest = len(dashboard.Path)
+				remainder = strings.TrimPrefix(path, dashboard.Path)
+			}
+		}
 	}
-	return "/?q=" + url.QueryEscape(query)
+	if match == nil {
+		return nil, "", false
+	}
+	return match, remainder, true
+}
+
+func searchPageURL(basePath, query string) string {
+	if basePath == "" {
+		basePath = "/"
+	}
+	if query == "" {
+		return basePath + "/"
+	}
+	return basePath + "/?q=" + url.QueryEscape(query)
+}
+
+func querySuffix(raw string) string {
+	if raw == "" {
+		return ""
+	}
+	return "?" + raw
 }
 
 func matchesQuery(query string, group config.Group, link config.Link) bool {

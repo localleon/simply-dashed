@@ -1,0 +1,141 @@
+{{ define "dashboards" }}
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ .Title }}</title>
+    <link rel="stylesheet" href="/static/vendor/normalize-8.0.1.min.css">
+    <link rel="stylesheet" href="/static/vendor/milligram-1.4.1.min.css">
+    <style>
+      :root {
+        --sd-bg: #f5f5f2;
+        --sd-surface: #ffffff;
+        --sd-surface-muted: #fbfbf9;
+        --sd-surface-border: #dfe3da;
+        --sd-text: #25282b;
+        --sd-muted: #666c72;
+        --sd-accent: #9b4dca;
+      }
+
+      * { box-sizing: border-box; }
+      html { font-size: 58%; }
+      body {
+        margin: 0;
+        min-height: 100vh;
+        font-family: "Avenir Next", "Aptos", "Segoe UI Variable", "Segoe UI", sans-serif;
+        color: var(--sd-text);
+        background: var(--sd-bg);
+      }
+
+      main {
+        width: min(1040px, calc(100vw - 2.4rem));
+        margin: 0 auto;
+        padding: 2rem 0 2.4rem;
+      }
+
+      .shell {
+        padding: 1.6rem;
+        border: 1px solid var(--sd-surface-border);
+        border-radius: 0.8rem;
+        background: var(--sd-surface);
+      }
+
+      .hero h1 {
+        margin: 0;
+        font-size: 2.3rem;
+        letter-spacing: -0.02em;
+      }
+
+      .hero p {
+        margin: 0.35rem 0 0;
+        color: var(--sd-muted);
+        font-size: 1.35rem;
+      }
+
+      .dashboard-grid {
+        display: grid;
+        gap: 1rem;
+        margin-top: 1.4rem;
+      }
+
+      .dashboard-card {
+        display: block;
+        padding: 1.2rem 1.3rem;
+        border: 1px solid var(--sd-surface-border);
+        border-radius: 0.6rem;
+        background: var(--sd-surface-muted);
+        color: inherit;
+        text-decoration: none;
+        transition: border-color 140ms ease, background-color 140ms ease;
+      }
+
+      .dashboard-card:hover,
+      .dashboard-card:focus-visible {
+        border-color: var(--sd-accent);
+        background: #fff;
+      }
+
+      .dashboard-card h2 {
+        margin: 0;
+        font-size: 1.7rem;
+      }
+
+      .dashboard-card p {
+        margin: 0.25rem 0 0;
+        color: var(--sd-muted);
+        font-size: 1.25rem;
+      }
+
+      .dashboard-path {
+        display: inline-block;
+        margin-top: 0.8rem;
+        padding: 0.3rem 0.6rem;
+        border-radius: 999px;
+        background: #fff;
+        border: 1px solid var(--sd-surface-border);
+        color: var(--sd-accent);
+        font-size: 1.1rem;
+        font-weight: 700;
+      }
+
+      .footer {
+        margin-top: 1.2rem;
+        text-align: center;
+        color: var(--sd-muted);
+        font-size: 1.2rem;
+        letter-spacing: 0.04em;
+        text-transform: uppercase;
+      }
+
+      .footer span { padding: 0 0.4rem; }
+
+      @media (max-width: 720px) {
+        html { font-size: 56%; }
+        main { width: min(100vw - 1rem, 1040px); padding-top: 1rem; }
+        .shell { padding: 1rem; border-radius: 0.6rem; }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="shell">
+        <header class="hero">
+          <h1>{{ .Title }}</h1>
+          {{ if .Subtitle }}<p>{{ .Subtitle }}</p>{{ end }}
+        </header>
+        <section class="dashboard-grid" aria-label="Configured dashboards">
+          {{ range .Dashboards }}
+            <a class="dashboard-card" href="{{ .Path }}">
+              <h2>{{ .Title }}</h2>
+              {{ if .Subtitle }}<p>{{ .Subtitle }}</p>{{ end }}
+              <span class="dashboard-path">{{ .Path }}</span>
+            </a>
+          {{ end }}
+        </section>
+      </section>
+      <footer class="footer">{{ .Version }}</footer>
+    </main>
+  </body>
+</html>
+{{ end }}
